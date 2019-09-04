@@ -1,8 +1,1 @@
-total 72
-drwxr-xr-x  3 manish manish  4096 Sep  3 23:57 .
-drwxr-xr-x 22 manish manish  4096 Sep  3 23:25 ..
--rwxr-xr-x  1 manish manish 23024 Sep  2 18:14 a.out
-drwxr-xr-x  8 manish manish  4096 Sep  2 17:37 .git
--rwxr-xr-x  1 manish manish 32720 Sep  3 23:57 main_shell
--rw-r--r--  1 manish manish  3054 Sep  3 23:57 main_shell.cpp
--rw-r--r--  1 manish manish     0 Sep  3 23:57 temp.txt
+manish-Aspire-E5-571

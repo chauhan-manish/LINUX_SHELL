@@ -2,7 +2,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+
+//#include "alias.cpp"
 using namespace std;
+map < string, string >mp;
+
 string prompt()
 {
 	ifstream fin;
@@ -38,44 +42,61 @@ string prompt()
 	return s1;
 }
 
-long split(string command, vector<string> &args, char *delim)
+long split(string command, vector<string> &args, char delim)
 {
-	char* ptr = strtok( (char*)command.c_str(), delim);
-	long i=0;
-	while(ptr != NULL)
+	long i=0,n=command.size(),k=0;
+	string s="";
+	for(i=0;i<n;i++)
 	{
+		if(command[i]!=delim)
+		{	
+			s+=command[i];
+		}
+		else
+		{
+			if(s.size()>0)
+			{
+				args[k++] = s;
+				s="";
+			}
+		}
 		
-		args[i] = string(ptr);
-		//cout<<args[i]<<"\n";
-		ptr = strtok(NULL, delim);
-		i++;
 	}
-	args[i]="\0";
-	return i;
+	if(s.size()>0)
+	{
+		args[k++] = s;
+	}
+	args[k]="\0";
+	return k;
 }
-long split1(string command, char *args[100], char *delim)
+void alias(string command)
 {
-	char* ptr = strtok( (char*)command.c_str(), delim);
-	long i=0;
-	while(ptr != NULL)
+	vector<string>al(20);
+	char delim='=';
+	string x,y;
+	long n = split(command, al, delim);
+	x=al[0];
+	y=al[1];
+	//cout<<x<<"\n"<<y<<"\n";
+	if( al[1][0]=='"')
 	{
-		
-		args[i] = ptr;
-		//cout<<string(args[i])<<"\n";
-		ptr = strtok(NULL, delim);
-		i++;
+		n=y.size();
+		y=y.substr( 1,n-3);
+		//cout<<x<<"\n"<<y<<"\n";
 	}
-	args[i]=NULL;
-	return i;
+	if( mp.find(x)!=mp.end())
+		mp[x]=y;
+	else
+		mp.insert( make_pair( x, y ));
 }
 int main()
 {
-	int fd;
-	char* delim;
+	int fd, ioredir ;
+	char delim;
 	char *args[100];
 	vector< string >str(100);
 	pid_t pid;
-	string ps1, tmp = getenv("USER"), command, filename="temp.txt";
+	string ps1="", tmp = getenv("USER"), command, filename="temp.txt";
 	long i, n, x;
 	tmp = tmp + "@" + prompt() + ": ";
 	//cout<< ps1;
@@ -86,13 +107,17 @@ int main()
 		ps1 = tmp + getcwd(path,100) + "$ ";
 		cout << ps1;
 		getline( cin, command );
-		
-		delim = "|";
+		if(command == "")
+			continue;
+
+		delim = '|';
 		n = split(command, str, delim);
+		//cout<<n<<"\n";
 		if( n > 1 )
 		{
-			//cout<<n<<"\n";
-			delim = " ";
+			///////////////////  pipe
+			/*
+			delim = ' ';
 			x = split1(str[0], args, delim);
 			pid=fork();
 			
@@ -153,17 +178,43 @@ int main()
 			{
 				wait(0);
 			}
+			*/
 		}
 		else
 		{
-			delim = " ";
-			split1(command, args, delim);
-			if(string(args[0])=="cd")
+			delim = ' ';
+			x = split(command, str, delim);
+			//cout<<str[0]<<"xxx"<<str[1]<<"\n";
+			if( mp.find(str[0])!=mp.end() )
 			{
-				chdir(args[1]);
+				str[0] = mp[str[0]];
+				//cout<<str[0]<<"\n";
+				string ax="";
+				for(i=0; i<x; i++)
+					ax += str[i] + " ";
+				//cout<<ax<<"\n";
+				
+				x = split(ax, str, delim);
+				
+			}
+			if(str[0]=="cd")
+			{
+				chdir((char*)str[1].c_str());
+			}
+			else if(str[0]=="alias")
+			{
+				string ax="";
+				for(i=1; i<x; i++)
+					ax += str[i] + " ";
+				//cout<<ax<<"\n";
+				alias(ax);
+
 			}
 			else
 			{
+				for(i=0;i<x;i++)
+					args[i]=(char*)str[i].c_str();
+				args[i]=NULL;
 				pid=fork();
 				if( pid==0 )
 				{			
@@ -178,7 +229,6 @@ int main()
 				}
 			}
 		}
-		
 	}
 	return 0;
 }
