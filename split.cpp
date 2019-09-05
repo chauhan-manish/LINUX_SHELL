@@ -3,7 +3,8 @@ using namespace std;
 
 long split(string command, vector<string> &args, char delim)
 {
-	long i=0,n=command.size(),k=0;
+	bool flag=0;
+	long i=0,n=command.size(),k=0,m;
 	string s="";
 	for(i=0;i<n;i++)
 	{
@@ -15,6 +16,13 @@ long split(string command, vector<string> &args, char delim)
 		{
 			if(s.size()>0)
 			{
+				if( s[0]=='"' || s[0]=='\'')
+				{
+					//flag = 1;
+					m=s.size();
+					s=s.substr( 1,m-2);
+	
+				}
 				args[k++] = s;
 				s="";
 			}
@@ -23,6 +31,12 @@ long split(string command, vector<string> &args, char delim)
 	}
 	if(s.size()>0)
 	{
+		if( s[0]=='"' || s[0]=='\'')
+		{
+			m=s.size();
+			s=s.substr( 1,m-2);
+
+		}
 		args[k++] = s;
 	}
 	args[k]="\0";

@@ -48,6 +48,11 @@ int main()
 	while(ch[0]!='\n')
 	{
 		ch[0]=getchar();
+		if(ch[0]==1)
+		{
+			cout<<"lol";
+			break;
+		}
 		if(ch[0]==27)
 		{
 			ch[1]=getchar();

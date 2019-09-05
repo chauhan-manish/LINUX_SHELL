@@ -1,1 +1,1 @@
-  9  74 458 read.txt
+ 10  10 102 read.txt

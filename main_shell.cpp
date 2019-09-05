@@ -8,6 +8,15 @@ map < string, string >mp;
 vector< string > history;
 #include "split.cpp"
 #include "alias.cpp"
+#include "ioredir.cpp"
+void init()
+{
+	mp.insert( make_pair( "$HOME", getenv("HOME") ) );
+	mp.insert( make_pair( "$USER", getenv("USER") ) );
+	mp.insert( make_pair( "$UID" , getenv("UID") ) );
+	mp.insert( make_pair( "$PATH", getenv("PATH") ) );
+	
+}
 
 string prompt()
 {
@@ -39,6 +48,7 @@ string prompt()
 		s1 += s;
 		//cout<<s<<"\n";
 	}
+	mp.insert( make_pair("$HOSTNAME", s1) );
 	//cout<<s1<<"\n";
 	fin.close();
 	return s1;
@@ -46,7 +56,9 @@ string prompt()
 
 int main()
 {
-	int fd, rfd, ioredir , in, out;
+	//init();
+	int fd, rfd, in, out;
+	bool pipe, ioredir1, ioredir2;
 	char delim;
 	char *args[100];
 	vector< string >str(100);
@@ -55,8 +67,12 @@ int main()
 	long i, n, x, j;
 	tmp = tmp + "@" + prompt() + ": ";
 	//cout<< ps1;
+	//mp.insert( make_pair( "$PS1", tmp) );
 	while(1)
 	{
+		ioredir1 = false;
+		ioredir2 = false;
+		pipe = false;
 		char path[100]={'\0'};
 		ps1="";
 		ps1 = tmp + getcwd(path,100) + "$ ";
@@ -65,12 +81,22 @@ int main()
 		if(command == "")
 			continue;
 		history.push_back(command);
-		delim = '|';
-		n = split(command, str, delim);
+			
+		if( command.find(">>") != string::npos )
+			ioredir2 = true;
+		else if( command.find(">") != string::npos )
+			ioredir1 = true;
+		else if( command.find("|") != string::npos )
+			pipe = true;
+		
 		//cout<<n<<"\n";
-		if( n > 1 )
+		if( pipe )
 		{
 			///////////////////  pipe
+			delim = '|';
+			n = split(command, str, delim);
+		
+			
 			delim = ' ';
 			vector< string >ar(20);
 			x = split(str[0], ar, delim);
@@ -176,6 +202,16 @@ int main()
 				wait(0);
 			}
 		}
+		else if( ioredir1 )
+		{
+			delim = '>';
+			ioredirection( command, delim, false);
+		}
+		else if( ioredir2 )
+		{
+			delim = '>>';
+			ioredirection( command, delim, true);
+		}
 		else
 		{
 			delim = ' ';
@@ -208,6 +244,14 @@ int main()
 			}
 			else
 			{
+				/*
+				delim = '"';
+				vector< string > ar(20);
+				if(str[0]=="echo")
+				{
+					x = split(command, ar, delim)
+				}
+				*/
 				for(i=0; i<x; i++)
 					args[i]=(char*)str[i].c_str();
 				args[i]=NULL;
