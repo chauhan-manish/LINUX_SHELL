@@ -1,5 +1,1 @@
-alias.cpp
-a.out
-main_shell
-main_shell.cpp
-temp.txt
+manish-Aspire-E5-571

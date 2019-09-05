@@ -2,10 +2,12 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-
-//#include "alias.cpp"
 using namespace std;
+
 map < string, string >mp;
+vector< string > history;
+#include "split.cpp"
+#include "alias.cpp"
 
 string prompt()
 {
@@ -42,56 +44,9 @@ string prompt()
 	return s1;
 }
 
-long split(string command, vector<string> &args, char delim)
-{
-	long i=0,n=command.size(),k=0;
-	string s="";
-	for(i=0;i<n;i++)
-	{
-		if(command[i]!=delim)
-		{	
-			s+=command[i];
-		}
-		else
-		{
-			if(s.size()>0)
-			{
-				args[k++] = s;
-				s="";
-			}
-		}
-		
-	}
-	if(s.size()>0)
-	{
-		args[k++] = s;
-	}
-	args[k]="\0";
-	return k;
-}
-void alias(string command)
-{
-	vector<string>al(20);
-	char delim='=';
-	string x,y;
-	long n = split(command, al, delim);
-	x=al[0];
-	y=al[1];
-	//cout<<x<<"\n"<<y<<"\n";
-	if( al[1][0]=='"')
-	{
-		n=y.size();
-		y=y.substr( 1,n-3);
-		//cout<<x<<"\n"<<y<<"\n";
-	}
-	if( mp.find(x)!=mp.end())
-		mp[x]=y;
-	else
-		mp.insert( make_pair( x, y ));
-}
 int main()
 {
-	int fd, ioredir ;
+	int fd, rfd, ioredir , in, out;
 	char delim;
 	char *args[100];
 	vector< string >str(100);
@@ -109,7 +64,7 @@ int main()
 		getline( cin, command );
 		if(command == "")
 			continue;
-
+		history.push_back(command);
 		delim = '|';
 		n = split(command, str, delim);
 		//cout<<n<<"\n";
@@ -128,7 +83,7 @@ int main()
 			pid=fork();
 			if( pid==0 )
 			{
-				fd = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				fd = open("write.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 				close(1);
 				dup(fd);
 				close(fd);
@@ -142,9 +97,27 @@ int main()
 			{
 				wait(0);
 			}
-			
+			filename = "read.txt";
+				
 			for(i=1;i<n-1;i++)
 			{
+				char buffer[1000]={'\0'};
+	
+				rfd = open("read.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				fd = open("write.txt", O_RDONLY | O_CREAT , 0644);
+				
+				while (1)
+				{
+					in = read(fd, buffer, sizeof(buffer));
+					if (in <= 0) 
+						break;
+					out = write(rfd, buffer, in);
+					if (out <= 0) 
+						break;
+				}
+				close(rfd);
+				close(fd);
+				
 				x = split(str[i], ar, delim);
 				for(j=0; j<x; j++)
 					args[j]=(char*)ar[j].c_str();
@@ -153,7 +126,7 @@ int main()
 				pid=fork();
 				if( pid==0 )
 				{
-					fd = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+					fd = open("write.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 					close(1);
 					dup(fd);
 					close(fd);
@@ -168,6 +141,23 @@ int main()
 					wait(0);
 				}
 			}
+			char buffer[1000]={'\0'};
+	
+			rfd = open("read.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			fd = open("write.txt", O_CREAT | O_RDONLY, 0644);
+			
+			while (1)
+			{
+				in = read(fd, buffer, sizeof(buffer));
+				if (in <= 0) 
+					break;
+				out = write(rfd, buffer, in);
+				if (out <= 0) 
+					break;
+			}
+			close(rfd);
+			close(fd);
+			
 			x = split(str[i], ar, delim);
 			for(j=0; j<x; j++)
 				args[j]=(char*)ar[j].c_str();
