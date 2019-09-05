@@ -97,7 +97,7 @@ int main()
 	vector< string >str(100);
 	pid_t pid;
 	string ps1="", tmp = getenv("USER"), command, filename="temp.txt";
-	long i, n, x;
+	long i, n, x, j;
 	tmp = tmp + "@" + prompt() + ": ";
 	//cout<< ps1;
 	while(1)
@@ -116,18 +116,23 @@ int main()
 		if( n > 1 )
 		{
 			///////////////////  pipe
-			/*
 			delim = ' ';
-			x = split1(str[0], args, delim);
-			pid=fork();
+			vector< string >ar(20);
+			x = split(str[0], ar, delim);
+			for(j=0; j<x; j++)
+			{
+				args[j]=(char*)ar[j].c_str();
+			}
+			args[j]=NULL;
 			
+			pid=fork();
 			if( pid==0 )
 			{
 				fd = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 				close(1);
 				dup(fd);
 				close(fd);
-	
+				
 				if( execvp(args[0], args) == -1)
 				{
 					perror(args[0]);
@@ -140,9 +145,11 @@ int main()
 			
 			for(i=1;i<n-1;i++)
 			{
-				x = split1(str[i], args, delim);
-				args[x++]=(char*)filename.c_str();
-				args[x]=NULL;
+				x = split(str[i], ar, delim);
+				for(j=0; j<x; j++)
+					args[j]=(char*)ar[j].c_str();
+				args[j++]=(char*)filename.c_str();
+				args[j]=NULL;
 				pid=fork();
 				if( pid==0 )
 				{
@@ -161,11 +168,11 @@ int main()
 					wait(0);
 				}
 			}
-			
-			filename="temp.txt";
-			x = split1(str[1], args, delim);
-			args[x++]=(char*)filename.c_str();
-			args[x]=NULL;
+			x = split(str[i], ar, delim);
+			for(j=0; j<x; j++)
+				args[j]=(char*)ar[j].c_str();
+			args[j++]=(char*)filename.c_str();
+			args[j]=NULL;
 			pid=fork();
 			if( pid==0 )
 			{
@@ -178,7 +185,6 @@ int main()
 			{
 				wait(0);
 			}
-			*/
 		}
 		else
 		{
@@ -212,7 +218,7 @@ int main()
 			}
 			else
 			{
-				for(i=0;i<x;i++)
+				for(i=0; i<x; i++)
 					args[i]=(char*)str[i].c_str();
 				args[i]=NULL;
 				pid=fork();
