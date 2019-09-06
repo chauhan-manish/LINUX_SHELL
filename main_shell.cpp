@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <csignal>
 using namespace std;
 
 map < string, string >mp;
@@ -9,13 +10,21 @@ vector< string > history;
 #include "split.cpp"
 #include "alias.cpp"
 #include "ioredir.cpp"
+#include "scancode.cpp"
+int main();
+void signalHandler(int signum)
+{
+	cout<<"\n";
+	main();
+}
+
+
+
 void init()
 {
-	mp.insert( make_pair( "$HOME", getenv("HOME") ) );
 	mp.insert( make_pair( "$USER", getenv("USER") ) );
-	mp.insert( make_pair( "$UID" , getenv("UID") ) );
+	mp.insert( make_pair( "$HOME", getenv("HOME") ) );
 	mp.insert( make_pair( "$PATH", getenv("PATH") ) );
-	
 }
 
 string prompt()
@@ -56,7 +65,9 @@ string prompt()
 
 int main()
 {
-	//init();
+	signal(SIGINT, signalHandler); 
+	
+	init();
 	int fd, rfd, in, out;
 	bool pipe, ioredir1, ioredir2;
 	char delim;
@@ -68,6 +79,9 @@ int main()
 	tmp = tmp + "@" + prompt() + ": ";
 	//cout<< ps1;
 	//mp.insert( make_pair( "$PS1", tmp) );
+	string path=getenv("HOME");
+	chdir(path.c_str());
+		
 	while(1)
 	{
 		ioredir1 = false;
@@ -76,10 +90,17 @@ int main()
 		char path[100]={'\0'};
 		ps1="";
 		ps1 = tmp + getcwd(path,100) + "$ ";
+		if( mp.find("$PS1")!=mp.end())
+			mp["$PS1"]=ps1;
+		else
+			mp.insert( make_pair( "$PS1", ps1) );
 		cout << ps1;
-		getline( cin, command );
+		//getline( cin, command );
+		command = getinput();
+
 		if(command == "")
 			continue;
+		
 		history.push_back(command);
 			
 		if( command.find(">>") != string::npos )
@@ -216,6 +237,8 @@ int main()
 		{
 			delim = ' ';
 			x = split(command, str, delim);
+			if( str[0]=="exit")
+				break;
 			//cout<<str[0]<<"xxx"<<str[1]<<"\n";
 			if( mp.find(str[0])!=mp.end() )
 			{
@@ -231,7 +254,10 @@ int main()
 			}
 			if(str[0]=="cd")
 			{
-				chdir((char*)str[1].c_str());
+				if(x==1)
+					chdir(getenv("HOME"));
+				else
+					chdir((char*)str[1].c_str());
 			}
 			else if(str[0]=="alias")
 			{

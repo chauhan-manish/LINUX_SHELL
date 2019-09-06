@@ -21,8 +21,12 @@ long split(string command, vector<string> &args, char delim)
 					//flag = 1;
 					m=s.size();
 					s=s.substr( 1,m-2);
-	
+					//cout<<s<<"\n";
+					
 				}
+				if( mp.find(s)!=mp.end())
+					s=mp[s];
+				
 				args[k++] = s;
 				s="";
 			}
@@ -35,8 +39,10 @@ long split(string command, vector<string> &args, char delim)
 		{
 			m=s.size();
 			s=s.substr( 1,m-2);
-
+			//cout<<s<<"\n";
 		}
+		if( mp.find(s)!=mp.end())
+						s=mp[s];
 		args[k++] = s;
 	}
 	args[k]="\0";
