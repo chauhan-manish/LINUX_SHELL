@@ -1,6 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
-
 long split(string command, vector<string> &args, char delim)
 {
 	long i=0,n=command.size(),k=0,m;
@@ -19,12 +16,14 @@ long split(string command, vector<string> &args, char delim)
 				{
 					m=s.size();
 					s=s.substr( 1,m-2);
-					cout<<s<<"\n";
 					
 				}
 				if( mp.find(s)!=mp.end())
 					s=mp[s];
+				if( s == "$$" )
+					s = to_string(getpid());
 				args[k++] = s;
+				//cout<<s<<"\n";
 				s="";
 			}
 		}
@@ -36,10 +35,13 @@ long split(string command, vector<string> &args, char delim)
 		{
 			m=s.size();
 			s=s.substr( 1,m-2);
-			cout<<s<<"\n";
 		}
 		if( mp.find(s)!=mp.end())
 			s=mp[s];
+		if( s == "$$" )
+			s = to_string(getpid());
+				
+		//cout<<s<<"\n";
 		args[k++] = s;
 	}
 	args[k]="\0";

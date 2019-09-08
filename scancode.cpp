@@ -1,20 +1,4 @@
-#include<bits/stdc++.h>
-#include <stdlib.h>
-#include <termios.h>
-#include <unistd.h>
-#include <ctype.h>
-using namespace std;
-
-//vector< string>history;
-
 struct termios orig_termios;
-void disableRawMode() {
-	
-}
-void enableRawMode() {
-	
-	
-}
 
 string getinput()
 {

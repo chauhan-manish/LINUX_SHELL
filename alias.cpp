@@ -1,6 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
-
 void alias(string command)
 {
 	vector<string>al(20);
@@ -9,7 +6,6 @@ void alias(string command)
 	long n = split(command, al, delim);
 	x=al[0];
 	y=al[1];
-	//cout<<x<<"\n"<<y<<"\n";
 	if( al[1][0]=='"')
 	{
 		n=y.size();

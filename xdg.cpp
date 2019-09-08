@@ -1,11 +1,3 @@
-#include <bits/stdc++.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <csignal>
-
-using namespace std;
-
 void xdg( string str)
 {
 	string prog_name;

@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <csignal>
+#include <termios.h>
 using namespace std;
 
 map < string, string >mp;
@@ -13,6 +14,7 @@ vector< string > history;
 #include "ioredir.cpp"
 #include "scancode.cpp"
 #include "xdg.cpp"
+#include "echo.cpp"
 int main();
  
 void signalHandler(int signum)
@@ -90,6 +92,7 @@ int main()
 		char path[100]={'\0'};
 		ps1="";
 		ps1 = tmp + getcwd(path,100) + "$ ";
+		
 		if( mp.find("$PS1")!=mp.end())
 			mp["$PS1"]=ps1;
 		else
@@ -164,9 +167,8 @@ int main()
 				alarm(stoi(str[1]));
 				
 			}
-			/*else if( str[x-1]=="&" )
+			else if( str[x-1]=="&" )
 			{
-				//cout<<"lol\n";
 				cout<<str[0]<<" "<<getpid();
 				for(i=0; i<x-1; i++)
 					args[i]=(char*)str[i].c_str();
@@ -188,17 +190,14 @@ int main()
 			else if( str[0] == "xdg-open" )
 			{
 				xdg( str[1] );
-			}*/
+			}
+			else if( str[0] == "echo" )
+			{
+				echo( command );
+			}
 			else
 			{
-				/*
-				delim = '"';
-				vector< string > ar(20);
-				if(str[0]=="echo")
-				{
-					x = split(command, ar, delim)
-				}
-				*/
+				
 				for(i=0; i<x; i++)
 					args[i]=(char*)str[i].c_str();
 				args[i]=NULL;

@@ -1,6 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
-
 void pipeline( string command , bool flag)
 {
 	char delim = '|';
