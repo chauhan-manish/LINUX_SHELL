@@ -9,16 +9,16 @@ map < string, string >mp;
 vector< string > history;
 #include "split.cpp"
 #include "alias.cpp"
+#include "pipe.cpp"
 #include "ioredir.cpp"
 #include "scancode.cpp"
+#include "xdg.cpp"
 int main();
+ 
 void signalHandler(int signum)
 {
-	cout<<"\n";
-	main();
+	cout<<"alarm\n";
 }
-
-
 
 void init()
 {
@@ -65,7 +65,7 @@ string prompt()
 
 int main()
 {
-	signal(SIGINT, signalHandler); 
+	signal(SIGALRM, signalHandler); 
 	
 	init();
 	int fd, rfd, in, out;
@@ -110,120 +110,7 @@ int main()
 		else if( command.find("|") != string::npos )
 			pipe = true;
 		
-		//cout<<n<<"\n";
-		if( pipe )
-		{
-			///////////////////  pipe
-			delim = '|';
-			n = split(command, str, delim);
-		
-			
-			delim = ' ';
-			vector< string >ar(20);
-			x = split(str[0], ar, delim);
-			for(j=0; j<x; j++)
-			{
-				args[j]=(char*)ar[j].c_str();
-			}
-			args[j]=NULL;
-			
-			pid=fork();
-			if( pid==0 )
-			{
-				fd = open("write.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-				close(1);
-				dup(fd);
-				close(fd);
-				
-				if( execvp(args[0], args) == -1)
-				{
-					perror(args[0]);
-				}
-			}
-			else
-			{
-				wait(0);
-			}
-			filename = "read.txt";
-				
-			for(i=1;i<n-1;i++)
-			{
-				char buffer[1000]={'\0'};
-	
-				rfd = open("read.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-				fd = open("write.txt", O_RDONLY | O_CREAT , 0644);
-				
-				while (1)
-				{
-					in = read(fd, buffer, sizeof(buffer));
-					if (in <= 0) 
-						break;
-					out = write(rfd, buffer, in);
-					if (out <= 0) 
-						break;
-				}
-				close(rfd);
-				close(fd);
-				
-				x = split(str[i], ar, delim);
-				for(j=0; j<x; j++)
-					args[j]=(char*)ar[j].c_str();
-				args[j++]=(char*)filename.c_str();
-				args[j]=NULL;
-				pid=fork();
-				if( pid==0 )
-				{
-					fd = open("write.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-					close(1);
-					dup(fd);
-					close(fd);
-		
-					if( execvp(args[0], args) == -1)
-					{
-						perror(args[0]);
-					}
-				}
-				else
-				{
-					wait(0);
-				}
-			}
-			char buffer[1000]={'\0'};
-	
-			rfd = open("read.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-			fd = open("write.txt", O_CREAT | O_RDONLY, 0644);
-			
-			while (1)
-			{
-				in = read(fd, buffer, sizeof(buffer));
-				if (in <= 0) 
-					break;
-				out = write(rfd, buffer, in);
-				if (out <= 0) 
-					break;
-			}
-			close(rfd);
-			close(fd);
-			
-			x = split(str[i], ar, delim);
-			for(j=0; j<x; j++)
-				args[j]=(char*)ar[j].c_str();
-			args[j++]=(char*)filename.c_str();
-			args[j]=NULL;
-			pid=fork();
-			if( pid==0 )
-			{
-				if( execvp(args[0], args) == -1)
-				{
-					perror(args[0]);
-				}
-			}
-			else
-			{
-				wait(0);
-			}
-		}
-		else if( ioredir1 )
+		if( ioredir1 )
 		{
 			delim = '>';
 			ioredirection( command, delim, false);
@@ -232,6 +119,10 @@ int main()
 		{
 			delim = '>>';
 			ioredirection( command, delim, true);
+		}
+		else if( pipe )
+		{
+			pipeline( command, false);
 		}
 		else
 		{
@@ -252,14 +143,14 @@ int main()
 				x = split(ax, str, delim);
 				
 			}
-			if(str[0]=="cd")
+			if( str[0]=="cd" )
 			{
 				if(x==1)
 					chdir(getenv("HOME"));
 				else
 					chdir((char*)str[1].c_str());
 			}
-			else if(str[0]=="alias")
+			else if( str[0]=="alias" )
 			{
 				string ax="";
 				for(i=1; i<x; i++)
@@ -268,6 +159,36 @@ int main()
 				alias(ax);
 
 			}
+			else if( str[0]=="alarm" )
+			{
+				alarm(stoi(str[1]));
+				
+			}
+			/*else if( str[x-1]=="&" )
+			{
+				//cout<<"lol\n";
+				cout<<str[0]<<" "<<getpid();
+				for(i=0; i<x-1; i++)
+					args[i]=(char*)str[i].c_str();
+				args[i]=NULL;
+				pid=fork();
+				if( pid==0 )
+				{
+					setpgid( 0,1 );					
+					if( execvp(args[0], args) == -1)
+					{
+						perror(args[0]);
+					}
+				}
+				else
+				{
+					//wait(0);
+				}
+			}
+			else if( str[0] == "xdg-open" )
+			{
+				xdg( str[1] );
+			}*/
 			else
 			{
 				/*

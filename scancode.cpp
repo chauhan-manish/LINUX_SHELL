@@ -9,31 +9,32 @@ using namespace std;
 
 struct termios orig_termios;
 void disableRawMode() {
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+	
 }
 void enableRawMode() {
 	
-	tcgetattr(STDIN_FILENO, &orig_termios);
-	atexit(disableRawMode);
-	struct termios termios_p = orig_termios;
-	termios_p.c_lflag &= ~( ECHO | ICANON );
-	tcsetattr( STDIN_FILENO, TCSAFLUSH, &termios_p);
 	
 }
 
 string getinput()
 {
 	string command="";
-	enableRawMode();
+	//enableRawMode();
+	tcgetattr(STDIN_FILENO, &orig_termios);
+	//atexit(disableRawMode);
+	struct termios termios_p = orig_termios;
+	termios_p.c_lflag &= ~( ECHO | ICANON );
+	tcsetattr( STDIN_FILENO, TCSAFLUSH, &termios_p);
+	
 	char c;
 	string s="";
 	char ch[3]={1,0,0};
-	long count=0, k=history.size(), n = mp["$PS1"].size(), m;
-	m=n;
+	long count=0, k=history.size(), n = mp["$PS1"].size(), m, p;
+	p=n;m=n;
 	while(ch[0]!='\n')
 	{
 		ch[0]=getchar();
-		if(ch[0] == 3)
+		if(ch[0] == 0x3f)
 		{
 			cout<<"^C";
 			command="";
@@ -43,6 +44,7 @@ string getinput()
 		{
 			if( m > n )
 			{
+				p--;
 				m--;
 				cout<<"\b \b";
 				command = command.substr(0, command.size()-1 );
@@ -54,33 +56,48 @@ string getinput()
 			ch[2]=getchar();
 			if(ch[2]=='A')
 			{
-				cout<<"\r                                                                                          \r";
+				cout<<"\r                                                                                                                                        \r";
 				k--;
+				if(k<-1)
+					k=-1;
 				cout<<mp["$PS1"];
 				if(k>=0)
 				{
 					cout<<history[k];
 					command = history[k];
+					m = n + history[k].size();
+					p=m;
 				}
 			}
 			else if(ch[2]=='B')
 			{
-				cout<<"\r                                                                                          \r";
+				cout<<"\r                                                                                                                                        \r";
 				k++;
+				if(k>=history.size())
+					k=history.size()-1;
+				
 				cout<<mp["$PS1"];
 				if(k<history.size())
 				{
 					cout<<history[k];
 					command = history[k];
+					m = n + history[k].size();
+					p=m;
 				}
 			}
 			else if(ch[2]=='C')
 			{
-				
+				//right cursor
 			}
 			else if(ch[2]=='D')
 			{
-				printf("\b");
+				//left cursor
+				if( p > n )
+				{
+					m--;
+					p--;
+					printf("\b");
+				}
 			}
 		}
 		else
@@ -88,10 +105,12 @@ string getinput()
 			cout<<ch[0];
 			command+=ch[0];
 			m++;
+			p++;
 		}
 	}
 	command = command.substr(0, command.size()-1 );
 	//cout<<command<<command.size();
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 	return command;
 }
 /* 
