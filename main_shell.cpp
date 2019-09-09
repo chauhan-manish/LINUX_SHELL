@@ -8,6 +8,8 @@ using namespace std;
 
 map < string, string >mp;
 vector< string > history;
+long calarm=0;
+
 #include "split.cpp"
 #include "alias.cpp"
 #include "pipe.cpp"
@@ -19,7 +21,14 @@ int main();
  
 void signalHandler(int signum)
 {
-	cout<<"alarm\n";
+	cout<<"Alarm Reminder\n";
+	calarm--;
+	ofstream fout;
+	fout.open("/home/manish/OS/alarm.log");
+	
+	fout << to_string(calarm) << "\n";
+	fout.close();
+
 }
 
 void init()
@@ -27,6 +36,24 @@ void init()
 	mp.insert( make_pair( "$USER", getenv("USER") ) );
 	mp.insert( make_pair( "$HOME", getenv("HOME") ) );
 	mp.insert( make_pair( "$PATH", getenv("PATH") ) );
+	
+	ifstream fin;
+	string s,s1="";
+	fin.open("/home/manish/OS/alarm.log");
+	while(fin)
+	{
+		getline(fin,s);
+		s1+=s;
+	}
+	cout<<s1<<" Alarm Missed\n";
+	fin.close();
+	
+	ofstream fout;
+	fout.open("/home/manish/OS/alarm.log");
+	
+	fout << "0" << "\n";
+	fout.close();
+
 }
 
 string prompt()
@@ -164,7 +191,9 @@ int main()
 			}
 			else if( str[0]=="alarm" )
 			{
+				
 				alarm(stoi(str[1]));
+				calarm++;
 				
 			}
 			else if( str[x-1]=="&" )
@@ -187,7 +216,7 @@ int main()
 					//wait(0);
 				}
 			}
-			else if( str[0] == "xdg-open" )
+			else if( str[0] == "open" )
 			{
 				xdg( str[1] );
 			}
